@@ -17,6 +17,10 @@ function Work() {
 
   if (!user) return null;
 
+  // 여기서 user.role이 'BACKEND_LEAD' 또는 'FRONTEND_LEAD'일 때
+  // TeamLeadWork가 렌더링되는지 console.log로 확인
+  console.log('Current user role:', user.role);
+
   // 역할에 따라 다른 컴포넌트 렌더링
   switch (user.role) {
     case 'PROJECT_LEAD':

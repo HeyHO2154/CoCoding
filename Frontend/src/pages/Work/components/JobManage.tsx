@@ -67,6 +67,26 @@ function JobManage() {
     }
   };
 
+  const handleUpdateJob = (job: Job) => {
+    // Implementation of handleUpdateJob
+  };
+
+  const handleDeleteJob = async (jobId: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/jobs/${jobId}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        alert('업무가 삭제되었습니다.');
+        fetchJobs();
+      }
+    } catch (error) {
+      console.error('Failed to delete job:', error);
+      alert('업무 삭제에 실패했습니다.');
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ 
@@ -100,6 +120,7 @@ function JobManage() {
             <th style={tableHeaderStyle}>상태</th>
             <th style={tableHeaderStyle}>생성자</th>
             <th style={tableHeaderStyle}>생성일</th>
+            <th style={tableHeaderStyle}>작업</th>
           </tr>
         </thead>
         <tbody>
@@ -110,6 +131,35 @@ function JobManage() {
               <td style={tableCellStyle}>{job.status}</td>
               <td style={tableCellStyle}>{job.createdBy}</td>
               <td style={tableCellStyle}>{new Date(job.createdAt).toLocaleDateString()}</td>
+              <td style={tableCellStyle}>
+                <button
+                  onClick={() => handleUpdateJob(job)}
+                  style={{
+                    padding: '5px 10px',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    marginRight: '5px'
+                  }}
+                >
+                  수정
+                </button>
+                <button
+                  onClick={() => handleDeleteJob(job.jobId)}
+                  style={{
+                    padding: '5px 10px',
+                    backgroundColor: '#f44336',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  삭제
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>

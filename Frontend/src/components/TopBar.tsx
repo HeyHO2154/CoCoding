@@ -135,15 +135,15 @@ function TopBar() {
               업무관리
             </button>
             <button
-              onClick={() => alert('준비 중입니다.')}
-              style={navButtonStyle(false)}
+              onClick={() => navigate('/status')}
+              style={navButtonStyle(location.pathname === '/status')}
             >
               <span role="img" aria-label="status">📊</span>
-              업무현황
+              운영현황
             </button>
             <button
-              onClick={() => alert('준비 중입니다.')}
-              style={navButtonStyle(false)}
+              onClick={() => navigate('/mypage')}
+              style={navButtonStyle(location.pathname === '/mypage')}
             >
               <span role="img" aria-label="profile">👤</span>
               내 정보

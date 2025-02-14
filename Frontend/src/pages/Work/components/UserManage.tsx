@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 interface User {
   userId: string;
@@ -29,7 +28,7 @@ const roleToKorean: { [key: string]: string } = {
 
 function UserManage() {
   const [users, setUsers] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [, setCurrentUser] = useState<User | null>(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [newUser, setNewUser] = useState({
     userId: '',
@@ -105,6 +104,25 @@ function UserManage() {
     }
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        alert('사용자가 삭제되었습니다.');
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert('사용자 삭제에 실패했습니다.');
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ 
@@ -177,6 +195,19 @@ function UserManage() {
                   }}
                 >
                   수정
+                </button>
+                <button
+                  onClick={() => handleDeleteUser(user.userId)}
+                  style={{
+                    padding: '5px 10px',
+                    backgroundColor: '#f44336',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  삭제
                 </button>
               </td>
             </tr>

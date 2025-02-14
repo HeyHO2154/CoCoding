@@ -3,6 +3,8 @@ import TopBar from './components/TopBar';
 import Login from "./pages/Login/Login";
 import Coding from "./pages/MainPage/Coding";
 import Work from './pages/Work/Work';
+import Status from './pages/Status/Status';
+import MyPage from './pages/Login/MyPage';
 
 // 로그인 상태 체크를 위한 Protected Route 컴포넌트
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -23,6 +25,8 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Coding />} />
                   <Route path="/work/*" element={<Work />} />
+                  <Route path="/status" element={<Status />} />
+                  <Route path="/mypage" element={<MyPage />} />
                 </Routes>
               </div>
             </>

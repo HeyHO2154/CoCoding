@@ -19,7 +19,6 @@ interface User {
 function JobAssign() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   useEffect(() => {
     fetchJobs();
