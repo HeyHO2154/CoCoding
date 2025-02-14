@@ -15,16 +15,36 @@ interface DirectoryProps {
 function Directory({ onFileSelect }: DirectoryProps) {
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
 
+  // 정렬 함수 추가
+  const sortFileTree = (nodes: FileNode[]): FileNode[] => {
+    return nodes.sort((a, b) => {
+      // 둘 다 디렉토리이거나 둘 다 파일인 경우 알파벳 순 정렬
+      if (a.isDirectory === b.isDirectory) {
+        return a.name.localeCompare(b.name);
+      }
+      // 디렉토리가 파일보다 먼저 오도록 정렬
+      return a.isDirectory ? -1 : 1;
+    }).map(node => {
+      if (node.children) {
+        return {
+          ...node,
+          children: sortFileTree(node.children)
+        };
+      }
+      return node;
+    });
+  };
+
   useEffect(() => {
     fetch("http://localhost:8080/api/files")
       .then((res) => res.json())
       .then((data: FileNode[]) => {
         const processNodes = (nodes: FileNode[]): FileNode[] => {
-          return nodes.map(node => ({
+          return sortFileTree(nodes.map(node => ({
             ...node,
             isOpen: false,
             children: node.children ? processNodes(node.children) : undefined
-          }));
+          })));
         };
         setFileTree(processNodes(data));
       })

@@ -15,22 +15,19 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route element={
+        <Route path="/*" element={
           <ProtectedRoute>
             <>
               <TopBar />
               <div style={{ height: 'calc(100vh - 60px)' }}>
                 <Routes>
                   <Route path="/" element={<Coding />} />
-                  <Route path="/work" element={<Work />} />
+                  <Route path="/work/*" element={<Work />} />
                 </Routes>
               </div>
             </>
           </ProtectedRoute>
-        }>
-          <Route path="/" element={<Coding />} />
-          <Route path="/work" element={<Work />} />
-        </Route>
+        } />
       </Routes>
     </Router>
   );

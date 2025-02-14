@@ -18,6 +18,15 @@ const roleOptions = [
   'JUNIOR_DEVELOPER'
 ];
 
+const roleToKorean: { [key: string]: string } = {
+  'PROJECT_LEAD': '프로젝트 리드',
+  'BACKEND_LEAD': '백엔드 리드',
+  'FRONTEND_LEAD': '프론트엔드 리드',
+  'BACKEND_DEVELOPER': '백엔드 개발자',
+  'FRONTEND_DEVELOPER': '프론트엔드 개발자',
+  'JUNIOR_DEVELOPER': '주니어 개발자'
+};
+
 function UserManage() {
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -148,7 +157,7 @@ function UserManage() {
                   }}
                 >
                   {roleOptions.map(role => (
-                    <option key={role} value={role}>{role}</option>
+                    <option key={role} value={role}>{roleToKorean[role]}</option>
                   ))}
                 </select>
               </td>
@@ -229,7 +238,7 @@ function UserManage() {
                 style={inputStyle}
               >
                 {roleOptions.map(role => (
-                  <option key={role} value={role}>{role}</option>
+                  <option key={role} value={role}>{roleToKorean[role]}</option>
                 ))}
               </select>
             </div>

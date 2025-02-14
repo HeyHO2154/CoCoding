@@ -1,33 +1,27 @@
 package Main.service;
 
 import Main.entity.Job;
-import Main.entity.User;
 import Main.repository.JobRepository;
-import Main.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
 
 @Service
 public class JobService {
     
     @Autowired
     private JobRepository jobRepository;
-    
-    @Autowired
-    private UserRepository userRepository;
+
     
     public List<Job> getAllJobs() {
         return jobRepository.findAll();
     }
     
-    public Job createJob(Job job, String assignedToUserId) {
-        if (assignedToUserId != null) {
-            User assignedUser = userRepository.findByUserId(assignedToUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-            job.setAssignedTo(assignedUser);
-        }
+    public Job createJob(Job job) {
+        job.setCreatedAt(LocalDateTime.now());
         return jobRepository.save(job);
     }
     
@@ -35,7 +29,7 @@ public class JobService {
         Job job = jobRepository.findById(jobId)
             .orElseThrow(() -> new RuntimeException("Job not found"));
             
-        job.setTitle(updatedJob.getTitle());
+        job.setJobName(updatedJob.getJobName());
         job.setDescription(updatedJob.getDescription());
         job.setStatus(updatedJob.getStatus());
         job.setDeadline(updatedJob.getDeadline());

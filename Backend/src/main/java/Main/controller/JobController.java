@@ -24,7 +24,7 @@ public class JobController {
     @PostMapping("/jobs")
     public ResponseEntity<?> createJob(@RequestBody Job job) {
         try {
-            Job createdJob = jobService.createJob(job, job.getAssignedTo().getUserId());
+            Job createdJob = jobService.createJob(job);
             return ResponseEntity.ok(createdJob);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

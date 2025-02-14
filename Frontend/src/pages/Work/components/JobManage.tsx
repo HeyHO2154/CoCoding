@@ -2,26 +2,30 @@ import { useState, useEffect } from 'react';
 
 interface Job {
   jobId: number;
-  title: string;
+  jobName: string;
   description: string;
-  status: string;
-  assignedTo: string;
   createdAt: string;
-  deadline: string;
+  createdBy: string;
+  status: string;
 }
 
 function JobManage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [showAddJobModal, setShowAddJobModal] = useState(false);
   const [newJob, setNewJob] = useState({
-    title: '',
+    jobName: '',
     description: '',
-    assignedTo: '',
-    deadline: ''
+    status: 'ACTIVE',
+    createdBy: ''
   });
 
   useEffect(() => {
     fetchJobs();
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      setNewJob(prev => ({...prev, createdBy: user.userId}));
+    }
   }, []);
 
   const fetchJobs = async () => {
@@ -49,7 +53,12 @@ function JobManage() {
       if (response.ok) {
         alert('업무가 추가되었습니다.');
         setShowAddJobModal(false);
-        setNewJob({ title: '', description: '', assignedTo: '', deadline: '' });
+        setNewJob({
+          jobName: '',
+          description: '',
+          status: 'ACTIVE',
+          createdBy: newJob.createdBy
+        });
         fetchJobs();
       }
     } catch (error) {
@@ -86,23 +95,21 @@ function JobManage() {
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ backgroundColor: '#f8f9fa' }}>
-            <th style={tableHeaderStyle}>제목</th>
+            <th style={tableHeaderStyle}>업무명</th>
             <th style={tableHeaderStyle}>설명</th>
             <th style={tableHeaderStyle}>상태</th>
-            <th style={tableHeaderStyle}>담당자</th>
+            <th style={tableHeaderStyle}>생성자</th>
             <th style={tableHeaderStyle}>생성일</th>
-            <th style={tableHeaderStyle}>마감일</th>
           </tr>
         </thead>
         <tbody>
           {jobs.map(job => (
             <tr key={job.jobId} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={tableCellStyle}>{job.title}</td>
+              <td style={tableCellStyle}>{job.jobName}</td>
               <td style={tableCellStyle}>{job.description}</td>
               <td style={tableCellStyle}>{job.status}</td>
-              <td style={tableCellStyle}>{job.assignedTo}</td>
+              <td style={tableCellStyle}>{job.createdBy}</td>
               <td style={tableCellStyle}>{new Date(job.createdAt).toLocaleDateString()}</td>
-              <td style={tableCellStyle}>{new Date(job.deadline).toLocaleDateString()}</td>
             </tr>
           ))}
         </tbody>
@@ -131,9 +138,9 @@ function JobManage() {
             <div style={{ marginBottom: '15px' }}>
               <input
                 type="text"
-                placeholder="업무 제목"
-                value={newJob.title}
-                onChange={(e) => setNewJob({...newJob, title: e.target.value})}
+                placeholder="업무명"
+                value={newJob.jobName}
+                onChange={(e) => setNewJob({...newJob, jobName: e.target.value})}
                 style={inputStyle}
               />
             </div>
@@ -143,23 +150,6 @@ function JobManage() {
                 value={newJob.description}
                 onChange={(e) => setNewJob({...newJob, description: e.target.value})}
                 style={{...inputStyle, height: '100px'}}
-              />
-            </div>
-            <div style={{ marginBottom: '15px' }}>
-              <input
-                type="text"
-                placeholder="담당자"
-                value={newJob.assignedTo}
-                onChange={(e) => setNewJob({...newJob, assignedTo: e.target.value})}
-                style={inputStyle}
-              />
-            </div>
-            <div style={{ marginBottom: '15px' }}>
-              <input
-                type="date"
-                value={newJob.deadline}
-                onChange={(e) => setNewJob({...newJob, deadline: e.target.value})}
-                style={inputStyle}
               />
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>

@@ -14,21 +14,23 @@ public class Job {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long jobId;
     
-    @Column(nullable = false)
-    private String title;
+    @Column(name = "job_name", nullable = false)
+    private String jobName;
     
     @Column(columnDefinition = "TEXT")
     private String description;
     
     @Column(nullable = false)
-    private String status = "TODO";
+    private String status = "ACTIVE";
     
-    @ManyToOne
-    @JoinColumn(name = "assigned_to")
-    private User assignedTo;
+    @Column(name = "created_by")
+    private String createdBy;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+    
+    @Column(name = "assigned_to")
+    private String assignedTo;
     
     private LocalDate deadline;
 } 
