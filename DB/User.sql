@@ -8,9 +8,19 @@ CREATE TABLE Users (
     user_id VARCHAR(50) PRIMARY KEY,
     password VARCHAR(255) NOT NULL, -- 암호화된 비밀번호 저장
     name VARCHAR(100) NOT NULL,     -- 사용자 실명
-    level VARCHAR(20) NOT NULL,      -- ADMIN, MANAGER, WORKER 등
+    role VARCHAR(20) NOT NULL,      -- level에서 role로 변경
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP
+    last_login TIMESTAMP,
+    CONSTRAINT check_role CHECK (
+        role IN (
+            'PROJECT_LEAD',        -- 프로젝트 리드: 업무 생성, 배분 권한
+            'BACKEND_LEAD',        -- 백엔드 리드: 업무 배분 권한
+            'FRONTEND_LEAD',       -- 프론트엔드 리드: 업무 배분 권한
+            'BACKEND_DEVELOPER',   -- 백엔드 개발자: 업무 부여 대상
+            'FRONTEND_DEVELOPER',  -- 프론트엔드 개발자: 업무 부여 대상
+            'JUNIOR_DEVELOPER'     -- 주니어 개발자: 업무 부여 대상
+        )
+    )
 );
 
 -- 업무 테이블
@@ -46,6 +56,6 @@ CREATE TABLE FilePermissions (
 );
 
 
-INSERT INTO Users (user_id, password, name, level) VALUES ('asd', '123', 'ASD', 'WORKER');
+INSERT INTO Users (user_id, password, name, role) VALUES ('junma97', 'hjh0715', '허성준', 'PROJECT_LEAD');
 
 SELECT * FROM Users;

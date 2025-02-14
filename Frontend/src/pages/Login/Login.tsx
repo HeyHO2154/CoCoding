@@ -24,7 +24,7 @@ function Login() {
         localStorage.setItem('user', JSON.stringify({
           userId: data.userId,
           name: data.name,
-          rank: data.rank
+          role: data.role
         }));
         navigate('/'); // 메인 페이지로 이동
       } else {

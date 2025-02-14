@@ -10,8 +10,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+import Main.entity.User;
+
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
     
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -23,12 +28,32 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             logger.info("Login request received for user: {}", request.getUserId());
-            UserResponse user = userService.login(request.getUserId(), request.getPassword());
-            return ResponseEntity.ok(user);
+            UserResponse userResponse = userService.login(request.getUserId(), request.getPassword());
+            
+            logger.info("Login successful. User: {}, Role: {}", 
+                userResponse.getUserId(), 
+                userResponse.getRole());
+                
+            return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             logger.error("Login failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(e.getMessage());
         }
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+    
+    @PostMapping("/users")
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        return ResponseEntity.ok(userService.createUser(user));
+    }
+    
+    @PutMapping("/users/{userId}")
+    public ResponseEntity<?> updateUser(@PathVariable String userId, @RequestBody User user) {
+        return ResponseEntity.ok(userService.updateUser(userId, user));
     }
 } 

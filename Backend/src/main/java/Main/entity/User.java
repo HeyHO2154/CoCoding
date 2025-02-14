@@ -3,9 +3,10 @@ package Main.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.sql.Timestamp;
 
 @Entity
-@Table(name = "users")
+@Table(name = "Users")
 @Getter @Setter
 public class User {
     @Id
@@ -14,6 +15,9 @@ public class User {
     private String password;
     private String name;
     
-    @Column(name = "level")
-    private String level;
+    @Column(name = "role")
+    private String role;
+    
+    private Timestamp createdAt;
+    private Timestamp lastLogin;
 } 

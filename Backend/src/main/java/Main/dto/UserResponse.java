@@ -8,11 +8,11 @@ import lombok.Setter;
 public class UserResponse {
     private String userId;
     private String name;
-    private String level;
+    private String role;
     
     public UserResponse(User user) {
         this.userId = user.getUserId();
         this.name = user.getName();
-        this.level = user.getLevel();
+        this.role = user.getRole();
     }
 } 

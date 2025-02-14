@@ -1,9 +1,8 @@
 import { useState } from "react";
-import TopBar from "../../components/TopBar";
-import Directory from "./Directory";
+import Directory from "./components/Directory";
 
 // 📂 폴더 & 파일 타입 정의
-function MainPage() {
+function Coding() {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [, setFileContent] = useState<string>("");
   const [newContent, setNewContent] = useState<string>("");
@@ -51,7 +50,6 @@ function MainPage() {
 
   return (
     <div>
-      <TopBar />
       <div style={{ display: "flex" }}>
         <Directory onFileSelect={openFile} />
         
@@ -85,4 +83,4 @@ function MainPage() {
   );
 }
 
-export default MainPage;
+export default Coding;
