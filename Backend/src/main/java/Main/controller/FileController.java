@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 public class FileController {
     
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
-    private final String PROJECT_DIR = "C:\\Users\\PRO\\Desktop\\Test\\";
+    private final String PROJECT_DIR = "C:\\Users\\PRO\\Desktop\\GitDesktop\\CoCoding\\";
 
     // 📂 1. 계층적 폴더 & 파일 구조 반환
     @GetMapping("/files")
