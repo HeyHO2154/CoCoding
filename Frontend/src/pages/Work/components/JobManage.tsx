@@ -76,6 +76,27 @@ function JobManage() {
     }
   };
 
+  const handleOpenCreateModal = () => {
+    setShowAddJobModal(true);
+    setSelectedFiles([]);
+    setExpandedFolders(new Set());
+  };
+
+  const handleUpdateJob = async (job: Job) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/file-permissions/job/${job.jobId}`);
+      if (response.ok) {
+        const permissions = await response.json();
+        setSelectedFiles(permissions.map((p: any) => p.filePath));
+      }
+      setEditingJob(job);
+      setShowEditJobModal(true);
+      setExpandedFolders(new Set());
+    } catch (error) {
+      console.error('Failed to fetch file permissions:', error);
+    }
+  };
+
   const handleAddJob = async () => {
     try {
       const response = await fetch('http://localhost:8080/api/jobs', {
@@ -87,6 +108,20 @@ function JobManage() {
       });
       
       if (response.ok) {
+        const createdJob = await response.json();
+        
+        await Promise.all(selectedFiles.map(filePath => 
+          fetch('http://localhost:8080/api/file-permissions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jobId: createdJob.jobId,
+              filePath,
+              createdBy: currentUser?.userId
+            })
+          })
+        ));
+
         alert('업무가 추가되었습니다.');
         setShowAddJobModal(false);
         setNewJob({
@@ -95,17 +130,13 @@ function JobManage() {
           status: 'ACTIVE',
           createdBy: newJob.createdBy
         });
+        setSelectedFiles([]);
         fetchJobs();
       }
     } catch (error) {
       console.error('Failed to add job:', error);
       alert('업무 추가에 실패했습니다.');
     }
-  };
-
-  const handleUpdateJob = (job: Job) => {
-    setEditingJob(job);
-    setShowEditJobModal(true);
   };
 
   const handleEditSubmit = async () => {
@@ -121,9 +152,26 @@ function JobManage() {
       });
       
       if (response.ok) {
+        await fetch(`http://localhost:8080/api/file-permissions/job/${editingJob.jobId}`, {
+          method: 'DELETE'
+        });
+
+        await Promise.all(selectedFiles.map(filePath => 
+          fetch('http://localhost:8080/api/file-permissions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jobId: editingJob.jobId,
+              filePath,
+              createdBy: currentUser?.userId
+            })
+          })
+        ));
+
         alert('업무가 수정되었습니다.');
         setShowEditJobModal(false);
         setEditingJob(null);
+        setSelectedFiles([]);
         fetchJobs();
       }
     } catch (error) {
@@ -305,7 +353,7 @@ function JobManage() {
       }}>
         <h2>업무 관리</h2>
         <button
-          onClick={() => setShowAddJobModal(true)}
+          onClick={handleOpenCreateModal}
           style={{
             padding: '8px 16px',
             backgroundColor: '#1a73e8',

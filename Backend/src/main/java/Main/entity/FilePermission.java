@@ -21,9 +21,6 @@ public class FilePermission {
     @Column(name = "file_path", nullable = false)
     private String filePath;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
     @Column(name = "created_by")
     private String createdBy;
 } 

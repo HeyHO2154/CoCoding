@@ -51,12 +51,20 @@ public class FilePermissionService {
     public void addFilePermission(Integer jobId, String filePath, String createdBy) {
         FilePermission permission = new FilePermission();
         Job job = new Job();
-        job.setJobId(jobId);  // Job 객체 직접 설정
+        job.setJobId(jobId);
         permission.setJob(job);
         permission.setFilePath(filePath);
-        permission.setCreatedAt(LocalDateTime.now());
         permission.setCreatedBy(createdBy);
         filePermissionRepository.save(permission);
+    }
+
+    public List<FilePermission> getFilePermissionsByJobId(Integer jobId) {
+        return filePermissionRepository.findByJobJobId(jobId);
+    }
+
+    public void deleteFilePermissionsByJobId(Integer jobId) {
+        List<FilePermission> permissions = filePermissionRepository.findByJobJobId(jobId);
+        filePermissionRepository.deleteAll(permissions);
     }
 
     private List<String> getAllFiles() {

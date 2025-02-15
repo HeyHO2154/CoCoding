@@ -52,6 +52,8 @@ CREATE TABLE FilePermissions (
     job_id INT,
     file_path VARCHAR(255) NOT NULL, -- 파일/폴더 경로
     permission_type VARCHAR(20),     -- READ, WRITE, NONE 등
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(50),
     FOREIGN KEY (job_id) REFERENCES Jobs(job_id)
 );
 

@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import Main.service.FilePermissionService;
+import Main.entity.FilePermission;
 
 @RestController
 @RequestMapping("/api/file-permissions")
+@CrossOrigin(origins = "http://localhost:5173")
 public class FilePermissionController {
     @Autowired
     private FilePermissionService filePermissionService;
@@ -21,12 +23,37 @@ public class FilePermissionController {
         return ResponseEntity.ok(filePermissionService.getAccessibleFiles(userId, userRole));
     }
 
-    @PostMapping
-    public ResponseEntity<Void> addFilePermission(
-            @RequestParam Integer jobId,
-            @RequestParam String filePath,
-            @RequestParam String createdBy) {
-        filePermissionService.addFilePermission(jobId, filePath, createdBy);
+    @PostMapping("")
+    public ResponseEntity<?> addFilePermission(@RequestBody FilePermissionRequest request) {
+        filePermissionService.addFilePermission(
+            request.getJobId(),
+            request.getFilePath(),
+            request.getCreatedBy()
+        );
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/job/{jobId}")
+    public ResponseEntity<List<FilePermission>> getFilePermissionsByJobId(@PathVariable Integer jobId) {
+        return ResponseEntity.ok(filePermissionService.getFilePermissionsByJobId(jobId));
+    }
+
+    @DeleteMapping("/job/{jobId}")
+    public ResponseEntity<?> deleteFilePermissionsByJobId(@PathVariable Integer jobId) {
+        filePermissionService.deleteFilePermissionsByJobId(jobId);
+        return ResponseEntity.ok().build();
+    }
+}
+
+class FilePermissionRequest {
+    private Integer jobId;
+    private String filePath;
+    private String createdBy;
+
+    public Integer getJobId() { return jobId; }
+    public void setJobId(Integer jobId) { this.jobId = jobId; }
+    public String getFilePath() { return filePath; }
+    public void setFilePath(String filePath) { this.filePath = filePath; }
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 } 
