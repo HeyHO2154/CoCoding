@@ -29,6 +29,12 @@ public class Job {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
-    @Transient  // DB 컬럼으로는 생성하지 않음
+    @Transient
     private String assignedTo;
+    
+    @Transient
+    private String assignedBy;
+    
+    @Transient
+    private LocalDateTime assignedAt;
 } 

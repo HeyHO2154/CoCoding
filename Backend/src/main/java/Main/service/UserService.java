@@ -9,6 +9,8 @@ import Main.entity.User;
 import Main.dto.UserResponse;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
+import Main.repository.UserJobRepository;
 
 @Service
 public class UserService {
@@ -17,6 +19,9 @@ public class UserService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private UserJobRepository userJobRepository;
     
     public UserResponse login(String userId, String password) {
         logger.info("Login attempt for user: {}", userId);
@@ -65,9 +70,12 @@ public class UserService {
         return userRepository.save(user);
     }
     
+    @Transactional
     public void deleteUser(String userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        userRepository.delete(user);
+        // 먼저 해당 사용자의 업무 배정 기록을 모두 삭제
+        userJobRepository.deleteAllByUserId(userId);
+        
+        // 그 다음 사용자 삭제
+        userRepository.deleteById(userId);
     }
 } 

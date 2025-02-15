@@ -24,11 +24,12 @@ public class JobService {
     public List<Job> getAllJobs() {
         List<Job> jobs = jobRepository.findAll();
         
-        // 각 Job에 대한 담당자 정보 설정
         for (Job job : jobs) {
             UserJob userJob = userJobRepository.findTopByIdJobIdOrderByAssignedAtDesc(job.getJobId());
             if (userJob != null) {
                 job.setAssignedTo(userJob.getId().getUserId());
+                job.setAssignedBy(userJob.getAssignedBy());
+                job.setAssignedAt(userJob.getAssignedAt());
             }
         }
         
