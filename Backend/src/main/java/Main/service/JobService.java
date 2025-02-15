@@ -6,7 +6,10 @@ import Main.repository.JobRepository;
 import Main.repository.UserJobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
+import Main.dto.FilePermissionDTO;
+import Main.entity.FilePermission;
+import Main.repository.FilePermissionRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,6 +22,9 @@ public class JobService {
     
     @Autowired
     private UserJobRepository userJobRepository;
+    
+    @Autowired
+    private FilePermissionRepository filePermissionRepository;
 
     
     public List<Job> getAllJobs() {
@@ -41,15 +47,22 @@ public class JobService {
         return jobRepository.save(job);
     }
     
-    public Job updateJob(Long jobId, Job updatedJob) {
-        Job job = jobRepository.findById(jobId)
-            .orElseThrow(() -> new RuntimeException("Job not found"));
-            
-        job.setJobName(updatedJob.getJobName());
-        job.setDescription(updatedJob.getDescription());
-        job.setStatus(updatedJob.getStatus());
+    @Transactional
+    public void updateJob(Integer jobId, Job job, List<FilePermissionDTO> permissions) {
+        // 1. 작업 정보 업데이트
+        jobRepository.save(job);
         
-        return jobRepository.save(job);
+        // 2. 기존 파일 권한 모두 삭제
+        filePermissionRepository.deleteAllByJobId(jobId);
+        
+        // 3. 새로운 파일 권한 저장
+        permissions.forEach(p -> {
+            FilePermission permission = new FilePermission();
+            permission.setJob(job);
+            permission.setFilePath(p.getFilePath());
+            permission.setCreatedBy(p.getCreatedBy());
+            filePermissionRepository.save(permission);
+        });
     }
     
     public void deleteJob(Long jobId) {

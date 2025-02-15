@@ -13,6 +13,7 @@ import Main.repository.UserJobRepository;
 
 import Main.entity.Job;
 import Main.entity.UserJob;
+import Main.dto.FilePermissionRequest;
 
 @Service
 @Transactional
@@ -75,9 +76,35 @@ public class FilePermissionService {
         return filePermissionRepository.findByJobJobId(jobId);
     }
 
+    @Transactional
     public void deleteFilePermissionsByJobId(Integer jobId) {
-        List<FilePermission> permissions = filePermissionRepository.findByJobJobId(jobId);
-        filePermissionRepository.deleteAll(permissions);
+        System.out.println("Deleting permissions for job: " + jobId);  // 로그 추가
+        filePermissionRepository.deleteAllByJobId(jobId);
+        filePermissionRepository.flush();
+    }
+
+    @Transactional
+    public void addFilePermissionsBulk(List<FilePermissionRequest> requests) {
+        if (!requests.isEmpty()) {
+            // 1. 해당 job의 기존 권한 모두 삭제
+            Integer jobId = requests.get(0).getJobId();
+            filePermissionRepository.deleteAllByJobId(jobId);
+            
+            // 2. 새로운 권한들 저장
+            List<FilePermission> permissions = requests.stream()
+                .map(req -> {
+                    FilePermission permission = new FilePermission();
+                    Job job = new Job();
+                    job.setJobId(req.getJobId());
+                    permission.setJob(job);
+                    permission.setFilePath(req.getFilePath());
+                    permission.setCreatedBy(req.getCreatedBy());
+                    return permission;
+                })
+                .collect(Collectors.toList());
+            
+            filePermissionRepository.saveAll(permissions);
+        }
     }
 
     private List<String> getAllFiles() {

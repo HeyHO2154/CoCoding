@@ -82,18 +82,54 @@ function JobManage() {
     setExpandedFolders(new Set());
   };
 
-  const handleUpdateJob = async (job: Job) => {
+  const handleEditClick = async (job: Job) => {
     try {
       const response = await fetch(`http://localhost:8080/api/file-permissions/job/${job.jobId}`);
       if (response.ok) {
         const permissions = await response.json();
         setSelectedFiles(permissions.map((p: any) => p.filePath));
       }
-      setEditingJob(job);
-      setShowEditJobModal(true);
-      setExpandedFolders(new Set());
+      setCurrentJob(job);
+      setOpenDialog(true);
     } catch (error) {
       console.error('Failed to fetch file permissions:', error);
+    }
+  };
+
+  const handleUpdateJob = async () => {
+    if (!currentJob.jobId) return;
+
+    try {
+      // 1. 작업 정보 업데이트
+      const response = await fetch(`http://localhost:8080/api/jobs/${currentJob.jobId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentJob)
+      });
+
+      if (response.ok) {
+        // 2. 선택된 파일 권한들만 한번에 전송
+        await fetch(`http://localhost:8080/api/file-permissions/bulk`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            selectedFiles.map(filePath => ({
+              jobId: currentJob.jobId,
+              filePath,
+              createdBy: currentUser?.userId
+            }))
+          )
+        });
+
+        alert('업무가 수정되었습니다.');
+        setOpenDialog(false);
+        setCurrentJob({});
+        setSelectedFiles([]);
+        fetchJobs();
+      }
+    } catch (error) {
+      console.error('Failed to update job:', error);
+      alert('업무 수정에 실패했습니다.');
     }
   };
 
@@ -110,18 +146,18 @@ function JobManage() {
       if (response.ok) {
         const createdJob = await response.json();
         
-        // 파일 권한 저장 시 상대 경로 사용
-        await Promise.all(selectedFiles.map(filePath => 
-          fetch('http://localhost:8080/api/file-permissions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        // 파일 권한 저장 시 벌크 API 사용
+        await fetch('http://localhost:8080/api/file-permissions/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            selectedFiles.map(filePath => ({
               jobId: createdJob.jobId,
-              filePath: filePath.replace(/^.*?CoCoding\//, ''),  // 상대 경로로 변환
+              filePath,
               createdBy: currentUser?.userId
-            })
-          })
-        ));
+            }))
+          )
+        });
 
         alert('업무가 추가되었습니다.');
         setShowAddJobModal(false);
@@ -215,18 +251,18 @@ function JobManage() {
       
       const newJob = await response.json();
       
-      // 파일 권한 설정
-      await Promise.all(selectedFiles.map(filePath => 
-        fetch('http://localhost:8080/api/file-permissions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+      // 파일 권한 벌크 저장
+      await fetch('http://localhost:8080/api/file-permissions/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          selectedFiles.map(filePath => ({
             jobId: newJob.jobId,
             filePath,
             createdBy: currentUser?.userId
-          })
-        })
-      ));
+          }))
+        )
+      });
 
       setOpenDialog(false);
       setCurrentJob({});
@@ -237,46 +273,45 @@ function JobManage() {
     }
   };
 
-  const getAllPathsUnderDirectory = (path: string, nodes: FileNode[]): string[] => {
-    const paths: string[] = [];
-    const node = nodes.find(n => n.path === path);
-    
-    if (node) {
-      paths.push(node.path);
-      if (node.children) {
-        node.children.forEach(child => {
-          paths.push(...getAllPathsUnderDirectory(child.path, [child]));
-        });
-      }
+  // 폴더의 모든 하위 경로를 가져오는 함수
+  const getAllPathsUnderDirectory = (node: FileNode): string[] => {
+    let paths: string[] = [node.path];
+    if (node.children) {
+      node.children.forEach(child => {
+        paths = paths.concat(getAllPathsUnderDirectory(child));
+      });
     }
-    
     return paths;
   };
 
-  const handleFileSelect = (path: string, isDirectory: boolean) => {
-    setSelectedFiles(prev => {
-      const newSelection = new Set(prev);
-      if (isDirectory) {
-        const allPaths = getAllPathsUnderDirectory(path, fileStructure);
-        // 이미 모든 하위 파일이 선택되어 있는지 확인
-        const allSelected = allPaths.every(p => newSelection.has(p));
-        
-        if (allSelected) {
-          // 모든 하위 파일이 선택되어 있으면 선택 해제
-          allPaths.forEach(p => newSelection.delete(p));
+  // 파일 선택 처리 함수 수정
+  const handleFileSelect = (node: FileNode, isSelected: boolean) => {
+    if (node.directory) {
+      // 폴더인 경우 하위 모든 파일/폴더에 대해 동일하게 적용
+      const allPaths = getAllPathsUnderDirectory(node);
+      setSelectedFiles(prev => {
+        if (isSelected) {
+          // 선택된 경우 기존 선택에 새로운 경로들 추가
+          return [...new Set([...prev, ...allPaths])];
         } else {
-          // 그렇지 않으면 모든 하위 파일 선택
-          allPaths.forEach(p => newSelection.add(p));
+          // 선택 해제된 경우 해당 경로들 제거
+          return prev.filter(path => !allPaths.includes(path));
         }
-      } else {
-        if (newSelection.has(path)) {
-          newSelection.delete(path);
+      });
+    } else {
+      // 단일 파일인 경우
+      setSelectedFiles(prev => {
+        if (isSelected) {
+          return [...prev, node.path];
         } else {
-          newSelection.add(path);
+          return prev.filter(path => path !== node.path);
         }
-      }
-      return Array.from(newSelection);
-    });
+      });
+    }
+  };
+
+  const isFileSelected = (path: string) => {
+    return selectedFiles.includes(path);
   };
 
   const handleFolderToggle = (path: string) => {
@@ -292,50 +327,48 @@ function JobManage() {
   };
 
   const FileSelector = ({ node, level = 0 }: { node: FileNode; level?: number }) => {
+    const isSelected = isFileSelected(node.path);
+    
+    // 폴더의 경우 모든 하위 항목이 선택되었는지 확인
+    const isAllChildrenSelected = node.directory && node.children ? 
+      node.children.every(child => {
+        if (child.directory) {
+          return getAllPathsUnderDirectory(child).every(path => selectedFiles.includes(path));
+        }
+        return selectedFiles.includes(child.path);
+      }) : isSelected;
+
     return (
       <div style={{ marginLeft: `${level * 20}px` }}>
         <div style={{ 
           display: 'flex', 
           alignItems: 'center',
-          padding: '4px 0',
-          cursor: 'pointer',
-          userSelect: 'none'
+          padding: '4px 0'
         }}>
           {node.directory && (
             <span 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleFolderToggle(node.path);
-              }}
+              onClick={() => handleFolderToggle(node.path)}
               style={{ 
                 marginRight: '5px',
-                width: '20px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                width: '20px'
               }}
             >
               {expandedFolders.has(node.path) ? '▼' : '▶'}
             </span>
           )}
-          <label style={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            flex: 1,
-            cursor: 'pointer'
-          }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
             <input
               type="checkbox"
-              checked={selectedFiles.includes(node.path)}
-              onChange={() => handleFileSelect(node.path, node.directory)}
-              style={{ marginRight: '8px' }}
+              checked={isAllChildrenSelected}
+              onChange={(e) => handleFileSelect(node, e.target.checked)}
             />
-            <span>
-              {node.directory ? '📁' : '📄'} {node.name}
-            </span>
+            {node.directory ? '📁' : '📄'} {node.name}
           </label>
         </div>
-        {node.directory && expandedFolders.has(node.path) && (
-          <div>
-            {node.children?.map(child => (
+        {node.directory && expandedFolders.has(node.path) && node.children && (
+          <div style={{ marginLeft: '20px' }}>
+            {node.children.map(child => (
               <FileSelector key={child.path} node={child} level={level + 1} />
             ))}
           </div>
@@ -390,7 +423,7 @@ function JobManage() {
               <td style={tableCellStyle}>{new Date(job.createdAt).toLocaleDateString()}</td>
               <td style={tableCellStyle}>
                 <button
-                  onClick={() => handleUpdateJob(job)}
+                  onClick={() => handleEditClick(job)}
                   style={{
                     marginRight: '8px',
                     padding: '4px 8px',

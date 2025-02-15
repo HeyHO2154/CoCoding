@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import Main.service.FilePermissionService;
 import Main.entity.FilePermission;
+import Main.dto.FilePermissionRequest;
 
 @RestController
 @RequestMapping("/api/file-permissions")
@@ -40,27 +41,28 @@ public class FilePermissionController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/bulk")
+    public ResponseEntity<?> addFilePermissionsBulk(@RequestBody List<FilePermissionRequest> requests) {
+        try {
+            filePermissionService.addFilePermissionsBulk(requests);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @GetMapping("/job/{jobId}")
     public ResponseEntity<List<FilePermission>> getFilePermissionsByJobId(@PathVariable Integer jobId) {
         return ResponseEntity.ok(filePermissionService.getFilePermissionsByJobId(jobId));
     }
 
     @DeleteMapping("/job/{jobId}")
-    public ResponseEntity<?> deleteFilePermissionsByJobId(@PathVariable Integer jobId) {
-        filePermissionService.deleteFilePermissionsByJobId(jobId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> deleteByJobId(@PathVariable Integer jobId) {
+        try {
+            filePermissionService.deleteFilePermissionsByJobId(jobId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-}
-
-class FilePermissionRequest {
-    private Integer jobId;
-    private String filePath;
-    private String createdBy;
-
-    public Integer getJobId() { return jobId; }
-    public void setJobId(Integer jobId) { this.jobId = jobId; }
-    public String getFilePath() { return filePath; }
-    public void setFilePath(String filePath) { this.filePath = filePath; }
-    public String getCreatedBy() { return createdBy; }
-    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 } 

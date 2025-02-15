@@ -2,10 +2,10 @@ package Main.controller;
 
 import Main.entity.Job;
 import Main.service.JobService;
+import Main.dto.JobUpdateRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -31,11 +31,11 @@ public class JobController {
         }
     }
     
-    @PutMapping("/jobs/{jobId}")
-    public ResponseEntity<?> updateJob(@PathVariable Long jobId, @RequestBody Job job) {
+    @PutMapping("/{jobId}/update")
+    public ResponseEntity<?> updateJob(@PathVariable Integer jobId, @RequestBody JobUpdateRequest request) {
         try {
-            Job updatedJob = jobService.updateJob(jobId, job);
-            return ResponseEntity.ok(updatedJob);
+            jobService.updateJob(jobId, request.getJob(), request.getFilePermissions());
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
