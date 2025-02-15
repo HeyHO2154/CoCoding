@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import Main.service.FilePermissionService;
 import Main.entity.FilePermission;
@@ -20,7 +21,13 @@ public class FilePermissionController {
     public ResponseEntity<List<String>> getAccessibleFiles(
             @RequestParam String userId,
             @RequestParam String userRole) {
-        return ResponseEntity.ok(filePermissionService.getAccessibleFiles(userId, userRole));
+        try {
+            List<String> accessibleFiles = filePermissionService.getAccessibleFiles(userId, userRole);
+            return ResponseEntity.ok(accessibleFiles);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(new ArrayList<>()); // 빈 리스트라도 반환
+        }
     }
 
     @PostMapping("")

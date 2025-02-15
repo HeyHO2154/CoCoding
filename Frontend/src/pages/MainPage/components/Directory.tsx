@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 
 type FileNode = {
   name: string;
@@ -14,6 +15,9 @@ interface DirectoryProps {
 
 function Directory({ onFileSelect }: DirectoryProps) {
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
+  const [accessibleFiles, setAccessibleFiles] = useState<string[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const navigate = useNavigate();
 
   // 정렬 함수 추가
   const sortFileTree = (nodes: FileNode[]): FileNode[] => {
@@ -36,20 +40,84 @@ function Directory({ onFileSelect }: DirectoryProps) {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/files")
-      .then((res) => res.json())
-      .then((data: FileNode[]) => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      setCurrentUser(user);
+      fetchAccessibleFiles(user.userId, user.role);
+    }
+    fetchFileStructure();
+  }, []);
+
+  const fetchFileStructure = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/files');
+      if (response.ok) {
+        const data = await response.json();
         const processNodes = (nodes: FileNode[]): FileNode[] => {
           return sortFileTree(nodes.map(node => ({
             ...node,
             isOpen: false,
+            isDirectory: node.isDirectory,
             children: node.children ? processNodes(node.children) : undefined
           })));
         };
         setFileTree(processNodes(data));
-      })
-      .catch((err) => console.error("Error loading file tree:", err));
-  }, []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch file structure:', error);
+    }
+  };
+
+  const fetchAccessibleFiles = async (userId: string, userRole: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/file-permissions/accessible?userId=${userId}&userRole=${userRole}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch accessible files');
+      }
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : [];
+      setAccessibleFiles(data);
+    } catch (error) {
+      console.error('Failed to fetch accessible files:', error);
+      setAccessibleFiles([]);
+    }
+  };
+
+  const hasAccessToFile = (path: string) => {
+    if (!currentUser) return false;
+    
+    // 프로젝트 리드는 모든 파일에 접근 가능
+    if (currentUser.role === 'PROJECT_LEAD') return true;
+    
+    // 프론트엔드 리드는 Frontend 폴더 내 파일만 접근 가능
+    if (currentUser.role === 'FRONTEND_LEAD') {
+      return path.startsWith('Frontend/');
+    }
+    
+    // 백엔드 리드는 Backend 폴더 내 파일만 접근 가능
+    if (currentUser.role === 'BACKEND_LEAD') {
+      return path.startsWith('Backend/');
+    }
+    
+    // 일반 개발자는 할당된 업무의 파일만 접근 가능
+    return accessibleFiles.includes(path);
+  };
+
+  const hasAccessToFolder = (node: FileNode): boolean => {
+    if (node.isDirectory) {
+      if (node.children) {
+        // 폴더 내 모든 파일/폴더에 접근 가능한지 확인
+        return node.children.some(child => 
+          child.isDirectory ? hasAccessToFolder(child) : hasAccessToFile(child.path)
+        );
+      }
+      return true;
+    }
+    return hasAccessToFile(node.path);
+  };
 
   // 폴더 토글 함수
   const toggleFolder = (path: string) => {
@@ -80,7 +148,17 @@ function Directory({ onFileSelect }: DirectoryProps) {
                 cursor: 'pointer',
                 gap: '5px'
               }}
-              onClick={() => node.isDirectory ? toggleFolder(node.path) : onFileSelect(node.path)}
+              onClick={() => {
+                if (node.isDirectory) {
+                  toggleFolder(node.path);
+                } else {
+                  if (hasAccessToFile(node.path)) {
+                    onFileSelect(node.path);
+                  } else {
+                    alert('이 파일에 대한 접근 권한이 없습니다.');
+                  }
+                }
+              }}
             >
               {node.isDirectory ? (
                 <>
@@ -92,7 +170,11 @@ function Directory({ onFileSelect }: DirectoryProps) {
               ) : (
                 <>
                   <span style={{ fontSize: '16px' }}>📄</span>
-                  <span style={{ color: '#0066cc' }}>{node.name}</span>
+                  <span style={{ 
+                    color: hasAccessToFile(node.path) ? '#0066cc' : 'red' 
+                  }}>
+                    {node.name}
+                  </span>
                 </>
               )}
             </div>
