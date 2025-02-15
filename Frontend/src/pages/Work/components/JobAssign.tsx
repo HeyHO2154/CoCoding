@@ -16,13 +16,27 @@ interface User {
   role: string;
 }
 
+const roleToKorean: { [key: string]: string } = {
+  'PROJECT_LEAD': '프로젝트 리드',
+  'BACKEND_LEAD': '백엔드 리드',
+  'FRONTEND_LEAD': '프론트엔드 리드',
+  'BACKEND_DEVELOPER': '백엔드 개발자',
+  'FRONTEND_DEVELOPER': '프론트엔드 개발자',
+  'JUNIOR_DEVELOPER': '주니어 개발자'
+};
+
 function JobAssign() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     fetchJobs();
     fetchUsers();
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      setCurrentUser(JSON.parse(userStr));
+    }
   }, []);
 
   const fetchJobs = async () => {
@@ -50,19 +64,30 @@ function JobAssign() {
   };
 
   const handleAssign = async (jobId: number, userId: string) => {
+    if (!currentUser) return;
+    if (!userId) return;
+
     try {
       const response = await fetch(`http://localhost:8080/api/jobs/${jobId}/assign`, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ assignedTo: userId })
+        body: JSON.stringify({
+          userId: userId,
+          assignedBy: currentUser.userId
+        })
       });
       
-      if (response.ok) {
-        alert('업무가 배정되었습니다.');
-        fetchJobs();
+      if (!response.ok) {
+        throw new Error('업무 배정에 실패했습니다.');
       }
+
+      const data = await response.json();
+      console.log('Assignment response:', data);
+
+      alert('업무가 배정되었습니다.');
+      fetchJobs();
     } catch (error) {
       console.error('Failed to assign job:', error);
       alert('업무 배정에 실패했습니다.');
@@ -90,7 +115,7 @@ function JobAssign() {
               <td style={tableCellStyle}>
                 <select
                   onChange={(e) => handleAssign(job.jobId, e.target.value)}
-                  value={job.assignedTo || ''}
+                  value=""
                   style={{
                     padding: '5px',
                     borderRadius: '4px',
@@ -100,7 +125,7 @@ function JobAssign() {
                   <option value="">담당자 선택</option>
                   {users.map(user => (
                     <option key={user.userId} value={user.userId}>
-                      {user.name} ({user.role})
+                      {user.name} ({roleToKorean[user.role]})
                     </option>
                   ))}
                 </select>

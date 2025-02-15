@@ -60,3 +60,4 @@ INSERT INTO Users (user_id, password, name, role) VALUES ('junma97', 'hjh0715', 
 USE hsj;
 SELECT * FROM Users;
 SELECT * FROM Jobs;
+SELECT * FROM UserJobs;

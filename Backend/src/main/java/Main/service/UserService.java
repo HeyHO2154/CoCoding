@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import Main.repository.UserRepository;
 import Main.entity.User;
 import Main.dto.UserResponse;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -33,7 +33,7 @@ public class UserService {
         }
         
         // 로그인 시간 업데이트
-        user.setLastLogin(new Timestamp(System.currentTimeMillis()));
+        user.setLastLogin(LocalDateTime.now());  // Timestamp -> LocalDateTime
         userRepository.save(user);
         
         logger.info("Login successful for user: {}", userId);
@@ -45,7 +45,7 @@ public class UserService {
     }
     
     public User createUser(User user) {
-        user.setCreatedAt(new Timestamp(System.currentTimeMillis())); // 현재 시간으로 설정
+        user.setCreatedAt(LocalDateTime.now());  // Timestamp -> LocalDateTime
         return userRepository.save(user);
     }
     

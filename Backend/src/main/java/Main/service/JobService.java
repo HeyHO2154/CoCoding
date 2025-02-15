@@ -1,7 +1,9 @@
 package Main.service;
 
 import Main.entity.Job;
+import Main.entity.UserJob;
 import Main.repository.JobRepository;
+import Main.repository.UserJobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +16,23 @@ public class JobService {
     
     @Autowired
     private JobRepository jobRepository;
+    
+    @Autowired
+    private UserJobRepository userJobRepository;
 
     
     public List<Job> getAllJobs() {
-        return jobRepository.findAll();
+        List<Job> jobs = jobRepository.findAll();
+        
+        // 각 Job에 대한 담당자 정보 설정
+        for (Job job : jobs) {
+            UserJob userJob = userJobRepository.findTopByIdJobIdOrderByAssignedAtDesc(job.getJobId());
+            if (userJob != null) {
+                job.setAssignedTo(userJob.getId().getUserId());
+            }
+        }
+        
+        return jobs;
     }
     
     public Job createJob(Job job) {
@@ -32,11 +47,6 @@ public class JobService {
         job.setJobName(updatedJob.getJobName());
         job.setDescription(updatedJob.getDescription());
         job.setStatus(updatedJob.getStatus());
-        job.setDeadline(updatedJob.getDeadline());
-        
-        if (updatedJob.getAssignedTo() != null) {
-            job.setAssignedTo(updatedJob.getAssignedTo());
-        }
         
         return jobRepository.save(job);
     }
