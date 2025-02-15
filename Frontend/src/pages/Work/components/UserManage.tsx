@@ -183,20 +183,6 @@ function UserManage() {
               <td style={tableCellStyle}>{user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : '-'}</td>
               <td style={tableCellStyle}>
                 <button
-                  onClick={() => handleUpdateUser(user.userId, { role: user.role })}
-                  style={{
-                    padding: '5px 10px',
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    marginRight: '5px'
-                  }}
-                >
-                  수정
-                </button>
-                <button
                   onClick={() => handleDeleteUser(user.userId)}
                   style={{
                     padding: '5px 10px',

@@ -57,5 +57,6 @@ CREATE TABLE FilePermissions (
 
 
 INSERT INTO Users (user_id, password, name, role) VALUES ('junma97', 'hjh0715', '허성준', 'PROJECT_LEAD');
-
+USE hsj;
 SELECT * FROM Users;
+SELECT * FROM Jobs;

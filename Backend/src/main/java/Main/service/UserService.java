@@ -45,6 +45,7 @@ public class UserService {
     }
     
     public User createUser(User user) {
+        user.setCreatedAt(new Timestamp(System.currentTimeMillis())); // 현재 시간으로 설정
         return userRepository.save(user);
     }
     
@@ -52,7 +53,21 @@ public class UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
             
-        user.setRole(updatedUser.getRole());
+        // 업데이트할 필드들 설정
+        if (updatedUser.getRole() != null) {
+            user.setRole(updatedUser.getRole());
+        }
+        if (updatedUser.getName() != null) {
+            user.setName(updatedUser.getName());
+        }
+        // 비밀번호는 별도의 로직으로 처리해야 할 수 있음
+        
         return userRepository.save(user);
+    }
+    
+    public void deleteUser(String userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository.delete(user);
     }
 } 
