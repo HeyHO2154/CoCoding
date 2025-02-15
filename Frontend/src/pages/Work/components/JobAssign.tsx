@@ -8,6 +8,7 @@ interface Job {
   assignedTo: string | null;
   createdBy: string;
   createdAt: string;
+  assignedBy: string | null;
 }
 
 interface User {
@@ -94,16 +95,19 @@ function JobAssign() {
     }
   };
 
-  return (
-    <div style={{ padding: '20px' }}>
-      <h2>업무 배정</h2>
+  const renderJobTable = (jobs: Job[], status: string) => (
+    <div style={{ marginBottom: '30px' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ backgroundColor: '#f8f9fa' }}>
-            <th style={tableHeaderStyle}>업무명</th>
+            <th style={tableHeaderStyle}>
+              {status === 'ACTIVE' ? '진행중인 업무명' : '완료된 업무명'}
+            </th>
             <th style={tableHeaderStyle}>설명</th>
-            <th style={tableHeaderStyle}>현재 담당자</th>
-            <th style={tableHeaderStyle}>배정</th>
+            <th style={tableHeaderStyle}>
+              {status === 'ACTIVE' ? '현재 담당자' : '기존 담당자'}
+            </th>
+            <th style={tableHeaderStyle}>배정 관리자</th>
           </tr>
         </thead>
         <tbody>
@@ -111,29 +115,54 @@ function JobAssign() {
             <tr key={job.jobId} style={{ borderBottom: '1px solid #eee' }}>
               <td style={tableCellStyle}>{job.jobName}</td>
               <td style={tableCellStyle}>{job.description}</td>
-              <td style={tableCellStyle}>{job.assignedTo || '-'}</td>
               <td style={tableCellStyle}>
-                <select
-                  onChange={(e) => handleAssign(job.jobId, e.target.value)}
-                  value=""
-                  style={{
-                    padding: '5px',
-                    borderRadius: '4px',
-                    border: '1px solid #ddd'
-                  }}
-                >
-                  <option value="">담당자 선택</option>
-                  {users.map(user => (
-                    <option key={user.userId} value={user.userId}>
-                      {user.name} ({roleToKorean[user.role]})
-                    </option>
-                  ))}
-                </select>
+                {status === 'ACTIVE' ? (
+                  <select
+                    value={job.assignedTo || ''}
+                    onChange={(e) => handleAssign(job.jobId, e.target.value)}
+                    style={{
+                      padding: '5px',
+                      borderRadius: '4px',
+                      border: '1px solid #ddd'
+                    }}
+                  >
+                    <option value="">미배정</option>
+                    {users.map(user => (
+                      <option key={user.userId} value={user.userId}>
+                        {user.name} ({roleToKorean[user.role]})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span>{job.assignedTo || '-'}</span>
+                )}
               </td>
+              <td style={tableCellStyle}>{job.assignedBy || '-'}</td>
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
+  );
+
+  const getStatusKorean = (status: string) => {
+    switch (status) {
+      case 'ACTIVE': return '진행중인 업무';
+      case 'COMPLETED': return '완료된 업무';
+      case 'ARCHIVED': return '보관된 업무';
+      default: return '';
+    }
+  };
+
+  const activeJobs = jobs.filter(job => job.status === 'ACTIVE');
+  const completedJobs = jobs.filter(job => job.status === 'COMPLETED');
+  const archivedJobs = jobs.filter(job => job.status === 'ARCHIVED');
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h2>업무 배정</h2>
+      {activeJobs.length > 0 && renderJobTable(activeJobs, 'ACTIVE')}
+      {completedJobs.length > 0 && renderJobTable(completedJobs, 'COMPLETED')}
     </div>
   );
 }
