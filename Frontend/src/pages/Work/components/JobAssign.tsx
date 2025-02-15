@@ -97,7 +97,13 @@ function JobAssign() {
 
   const renderJobTable = (jobs: Job[], status: string) => (
     <div style={{ marginBottom: '30px' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+        <colgroup>
+          <col style={{ width: '25%' }} />
+          <col style={{ width: '35%' }} />
+          <col style={{ width: '25%' }} />
+          <col style={{ width: '15%' }} />
+        </colgroup>
         <thead>
           <tr style={{ backgroundColor: '#f8f9fa' }}>
             <th style={tableHeaderStyle}>
