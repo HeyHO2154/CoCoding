@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.repository.query.Param;
+import java.util.List;
 
 @Repository
 public interface UserJobRepository extends JpaRepository<UserJob, UserJobId> {
@@ -18,4 +19,6 @@ public interface UserJobRepository extends JpaRepository<UserJob, UserJobId> {
     @Modifying
     @Transactional
     void deleteAllByUserId(@Param("userId") String userId);
+
+    List<UserJob> findByIdUserId(String userId);  // 추가
 } 

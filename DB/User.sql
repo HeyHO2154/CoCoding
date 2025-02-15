@@ -61,3 +61,4 @@ USE hsj;
 SELECT * FROM Users;
 SELECT * FROM Jobs;
 SELECT * FROM UserJobs;
+SELECT * FROM FilePermissions;
