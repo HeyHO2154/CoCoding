@@ -40,4 +40,9 @@ public class UserJobService {
             throw e;
         }
     }
+
+    @Transactional
+    public void deleteByJobId(Integer jobId) {
+        userJobRepository.deleteByIdJobId(jobId);
+    }
 } 

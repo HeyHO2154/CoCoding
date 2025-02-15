@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 function Coding() {
   const location = useLocation();
   const filePath = location.state?.filePath;
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [, setCurrentUser] = useState<any>(null);
   const [hasAccess, setHasAccess] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [, setFileContent] = useState<string>("");

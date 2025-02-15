@@ -30,7 +30,7 @@ public class UserController {
             logger.info("Login request received for user: {}", request.getUserId());
             UserResponse userResponse = userService.login(request.getUserId(), request.getPassword());
             
-            logger.info("Login successful. User: {}, Role: {}", 
+            logger.info("Login successful! User: {}, Role: {}", 
                 userResponse.getUserId(), 
                 userResponse.getRole());
                 

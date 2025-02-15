@@ -30,6 +30,9 @@ function JobAssign() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showAssignModal, setShowAssignModal] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -69,29 +72,30 @@ function JobAssign() {
     if (!userId) return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/jobs/${jobId}/assign`, {
+      // 1. 기존 할당 삭제
+      await fetch(`http://localhost:8080/api/user-jobs/job/${jobId}`, {
+        method: 'DELETE'
+      });
+
+      // 2. 새로운 할당 추가
+      const response = await fetch('http://localhost:8080/api/user-jobs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           userId: userId,
+          jobId: jobId,
           assignedBy: currentUser.userId
         })
       });
-      
-      if (!response.ok) {
-        throw new Error('업무 배정에 실패했습니다.');
+
+      if (response.ok) {
+        fetchJobs();  // 업데이트된 작업 목록 다시 불러오기
       }
-
-      const data = await response.json();
-      console.log('Assignment response:', data);
-
-      alert('업무가 배정되었습니다.');
-      fetchJobs();
     } catch (error) {
       console.error('Failed to assign job:', error);
-      alert('업무 배정에 실패했습니다.');
+      alert('업무 할당에 실패했습니다.');
     }
   };
 
@@ -122,25 +126,25 @@ function JobAssign() {
               <td style={tableCellStyle}>{job.jobName}</td>
               <td style={tableCellStyle}>{job.description}</td>
               <td style={tableCellStyle}>
-                {status === 'ACTIVE' ? (
-                  <select
-                    value={job.assignedTo || ''}
-                    onChange={(e) => handleAssign(job.jobId, e.target.value)}
-                    style={{
-                      padding: '5px',
-                      borderRadius: '4px',
-                      border: '1px solid #ddd'
-                    }}
-                  >
-                    <option value="">미배정</option>
-                    {users.map(user => (
-                      <option key={user.userId} value={user.userId}>
-                        {user.name} ({roleToKorean[user.role]})
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <span>{job.assignedTo || '-'}</span>
+                {status === 'ACTIVE' && (
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <select
+                      value={job.assignedTo || ''}
+                      onChange={(e) => handleAssign(job.jobId, e.target.value)}
+                      style={{
+                        padding: '5px',
+                        borderRadius: '4px',
+                        border: '1px solid #ddd'
+                      }}
+                    >
+                      <option value="">미배정</option>
+                      {users.map(user => (
+                        <option key={user.userId} value={user.userId}>
+                          {user.name} ({roleToKorean[user.role]})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 )}
               </td>
               <td style={tableCellStyle}>{job.assignedBy || '-'}</td>

@@ -9,24 +9,29 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:5173")
 public class UserJobController {
     
     @Autowired
     private UserJobService userJobService;
     
-    @PostMapping("/jobs/{jobId}/assign")
-    public ResponseEntity<?> assignJob(
-        @PathVariable Integer jobId,
-        @RequestBody Map<String, String> request
-    ) {
+    @PostMapping("/user-jobs")
+    public ResponseEntity<?> assignJob(@RequestBody Map<String, Object> request) {
         try {
-            String userId = request.get("userId");
-            String assignedBy = request.get("assignedBy");
+            String userId = (String) request.get("userId");
+            Integer jobId = (Integer) request.get("jobId");
+            String assignedBy = (String) request.get("assignedBy");
             
             UserJob userJob = userJobService.assignJob(userId, jobId, assignedBy);
             return ResponseEntity.ok(userJob);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @DeleteMapping("/user-jobs/job/{jobId}")
+    public ResponseEntity<?> deleteByJobId(@PathVariable Integer jobId) {
+        userJobService.deleteByJobId(jobId);
+        return ResponseEntity.ok().build();
     }
 } 

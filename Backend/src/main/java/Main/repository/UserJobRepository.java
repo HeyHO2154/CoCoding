@@ -21,4 +21,6 @@ public interface UserJobRepository extends JpaRepository<UserJob, UserJobId> {
     void deleteAllByUserId(@Param("userId") String userId);
 
     List<UserJob> findByIdUserId(String userId);  // 추가
+
+    void deleteByIdJobId(Integer jobId);  // 추가
 } 
