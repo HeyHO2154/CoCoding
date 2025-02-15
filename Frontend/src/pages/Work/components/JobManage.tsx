@@ -110,13 +110,14 @@ function JobManage() {
       if (response.ok) {
         const createdJob = await response.json();
         
+        // 파일 권한 저장 시 상대 경로 사용
         await Promise.all(selectedFiles.map(filePath => 
           fetch('http://localhost:8080/api/file-permissions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               jobId: createdJob.jobId,
-              filePath,
+              filePath: filePath.replace(/^.*?CoCoding\//, ''),  // 상대 경로로 변환
               createdBy: currentUser?.userId
             })
           })

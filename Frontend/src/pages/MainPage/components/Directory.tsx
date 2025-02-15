@@ -87,23 +87,50 @@ function Directory({ onFileSelect }: DirectoryProps) {
   };
 
   const hasAccessToFile = (path: string) => {
-    if (!currentUser) return false;
+    // 경로 구분자 통일 (백슬래시를 슬래시로)
+    const normalizedPath = path.replace(/\\/g, '/');
+    
+    if (!currentUser) {
+      console.log('No current user');
+      return false;
+    }
+    
+    console.log('=== Access Check Debug ===');
+    console.log('Original Path:', path);
+    console.log('Normalized Path:', normalizedPath);
+    console.log('User:', currentUser);
+    console.log('Role:', currentUser.role);
+    console.log('Accessible Files:', accessibleFiles);
     
     // 프로젝트 리드는 모든 파일에 접근 가능
-    if (currentUser.role === 'PROJECT_LEAD') return true;
+    if (currentUser.role === 'PROJECT_LEAD') {
+      console.log('Is Project Lead: true');
+      return true;
+    }
     
     // 프론트엔드 리드는 Frontend 폴더 내 파일만 접근 가능
-    if (currentUser.role === 'FRONTEND_LEAD') {
-      return path.startsWith('Frontend/');
+    if (currentUser.role === 'FRONTEND_LEAD' && normalizedPath.startsWith('Frontend/')) {
+      console.log('Is Frontend Lead with Frontend access: true');
+      return true;
     }
     
     // 백엔드 리드는 Backend 폴더 내 파일만 접근 가능
-    if (currentUser.role === 'BACKEND_LEAD') {
-      return path.startsWith('Backend/');
+    if (currentUser.role === 'BACKEND_LEAD' && 
+        (normalizedPath.startsWith('Backend/') || normalizedPath.startsWith('DB/'))) {
+      console.log('Is Backend Lead with DB/Backend access: true');
+      return true;
     }
     
     // 일반 개발자는 할당된 업무의 파일만 접근 가능
-    return accessibleFiles.includes(path);
+    const hasAccess = accessibleFiles.some(filePath => {
+      const normalizedFilePath = filePath.replace(/\\/g, '/');
+      const isMatch = normalizedPath === normalizedFilePath;
+      console.log(`Comparing ${normalizedPath} with ${normalizedFilePath}: ${isMatch}`);
+      return isMatch;
+    });
+    
+    console.log('Final access result:', hasAccess);
+    return hasAccess;
   };
 
   const hasAccessToFolder = (node: FileNode): boolean => {

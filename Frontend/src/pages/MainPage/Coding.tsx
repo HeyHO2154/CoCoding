@@ -21,7 +21,13 @@ function Coding() {
     }
   }, [filePath]);
 
-  const checkFileAccess = async (userId: string, userRole: string, path: string) => {
+  const checkFileAccess = async (userId: string, userRole: string, path: string | null) => {
+    // path가 없으면 early return
+    if (!path) {
+      setHasAccess(false);
+      return;
+    }
+
     try {
       const response = await fetch(
         `http://localhost:8080/api/file-permissions/accessible?userId=${userId}&userRole=${userRole}`
@@ -29,8 +35,10 @@ function Coding() {
       if (!response.ok) {
         throw new Error('Failed to fetch accessible files');
       }
-      const text = await response.text();
-      const accessibleFiles = text ? JSON.parse(text) : [];
+      const accessibleFiles = await response.json();
+      console.log('Path to check:', path);
+      console.log('Accessible files:', accessibleFiles);
+      
       const hasAccess = accessibleFiles.includes(path) || 
                        userRole === 'PROJECT_LEAD' ||
                        (userRole === 'FRONTEND_LEAD' && path.startsWith('Frontend/')) ||

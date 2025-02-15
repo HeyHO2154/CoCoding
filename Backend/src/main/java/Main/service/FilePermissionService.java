@@ -26,26 +26,40 @@ public class FilePermissionService {
 
     public List<String> getAccessibleFiles(String userId, String userRole) {
         if ("PROJECT_LEAD".equals(userRole)) {
-            return getAllFiles();  // 모든 파일 접근 가능
-        }
-
-        if ("BACKEND_LEAD".equals(userRole)) {
-            return getBackendFiles();  // 백엔드 폴더 내 파일들
+            return getAllFiles();
         }
 
         if ("FRONTEND_LEAD".equals(userRole)) {
-            return getFrontendFiles();  // 프론트엔드 폴더 내 파일들
+            return getFrontendFiles();
+        }
+
+        if ("BACKEND_LEAD".equals(userRole)) {
+            return getBackendFiles();
         }
 
         // 일반 개발자의 경우 배정된 업무의 파일들만 접근 가능
         List<UserJob> userJobs = userJobRepository.findByIdUserId(userId);
+        System.out.println("Found UserJobs for user " + userId + ": " + userJobs.size());
+        
         List<Integer> jobIds = userJobs.stream()
             .map(uj -> uj.getId().getJobId())
             .collect(Collectors.toList());
-
-        return filePermissionRepository.findByJobJobIdIn(jobIds).stream()
+        System.out.println("Job IDs: " + jobIds);
+        
+        List<FilePermission> permissions = filePermissionRepository.findByJobJobIdIn(jobIds);
+        System.out.println("Found FilePermissions: " + permissions.size());
+        
+        List<String> filePaths = permissions.stream()
             .map(FilePermission::getFilePath)
+            .map(path -> {
+                // DB에 저장된 경로가 이미 상대 경로이므로 변환 불필요
+                System.out.println("Processing path: " + path); // 디버깅용
+                return path;
+            })
             .collect(Collectors.toList());
+        System.out.println("Accessible file paths: " + filePaths);
+        
+        return filePaths;
     }
 
     public void addFilePermission(Integer jobId, String filePath, String createdBy) {
@@ -68,17 +82,20 @@ public class FilePermissionService {
     }
 
     private List<String> getAllFiles() {
-        // 모든 파일 경로 반환
-        return null; // 구현 필요
+        return filePermissionRepository.findAll().stream()
+            .map(FilePermission::getFilePath)
+            .collect(Collectors.toList());
     }
 
     private List<String> getBackendFiles() {
-        // Backend 폴더 내 파일들만 반환
-        return null; // 구현 필요
+        return getAllFiles().stream()
+            .filter(path -> path.startsWith("Backend/"))
+            .collect(Collectors.toList());
     }
 
     private List<String> getFrontendFiles() {
-        // Frontend 폴더 내 파일들만 반환
-        return null; // 구현 필요
+        return getAllFiles().stream()
+            .filter(path -> path.startsWith("Frontend/"))
+            .collect(Collectors.toList());
     }
 } 
